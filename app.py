@@ -624,16 +624,17 @@ if uploaded_file:
         st.pyplot(fig)
         
     # strategy response vs performance
-    toc.h2("4. Strategy vs Performance")
+    toc.h2("4. Mini-block Strategy vs Performance")
     
+    df_block_strat = df_all_parsed[['participant', 'mini_block', 'strategy_response']].drop_duplicates()
     col1, col2 = st.columns(2)
     with col1:
-        st.write("Count of strategy responses:")
-        st.write(df_all_parsed['strategy_response'].value_counts().reset_index().sort_values('strategy_response').reset_index(drop=True))
+        st.write("Count of strategy responses of mini-blcoks:")
+        st.write(df_block_strat['strategy_response'].value_counts().reset_index().sort_values('strategy_response').reset_index(drop=True))
         
     with col2:
         st.write("Count of strategy responses by participants:")
-        df_strategy_cnt_pivot = df_all_parsed.pivot_table(index='participant', columns='strategy_response', values='idx', aggfunc='count').reset_index().fillna(0)
+        df_strategy_cnt_pivot = df_block_strat.pivot_table(index='participant', columns='strategy_response', values='mini_block', aggfunc='count').reset_index().fillna(0)
         st.dataframe(df_strategy_cnt_pivot)
     
     # Accuracy vs Strategy Response
@@ -704,6 +705,7 @@ if uploaded_file:
         
     # Vividness vs Performance
     toc.h2("5. Vividness vs Performance")
+    
     
     col1, col2 = st.columns(2)
     with col1:
