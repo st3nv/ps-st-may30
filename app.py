@@ -8,6 +8,12 @@ from stoc import stoc
 import zipfile
 import os
 import shutil
+import statsmodels.api as sm 
+from statsmodels.formula.api import ols
+from statsmodels.stats.anova import anova_lm
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+from statsmodels.stats.multicomp import MultiComparison
+
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -781,7 +787,70 @@ if uploaded_file:
         # remove top and right borders
         sns.despine()
         st.pyplot(fig)
+    
+    
+    toc.h2("6. ANOVA of Accuracy and RT")
+    
+    col1, col2 = st.columns(2)
+    with col1: 
+        # Accuracy
+        toc.h3("6.1 Accuracy")
+        # ANOVA
+        df_all_parsed_for_anova = df_all_parsed.copy()[['corr', 'wm', 'dimension', 'angle']]
+        df_all_parsed_for_anova['corr'] = df_all_parsed_for_anova['corr'].astype(float)
+        df_all_parsed_for_anova.dropna(inplace=True)
+        df_all_parsed_for_anova['angle'] = df_all_parsed_for_anova['angle'].astype('str') + 'deg'
+        df_all_parsed_for_anova['angle'] = df_all_parsed_for_anova['angle'].astype('category')
+        df_all_parsed_for_anova['wm'] = df_all_parsed_for_anova['wm'].map({True: 'WM', False: 'Single'})
+        df_all_parsed_for_anova['wm'] = df_all_parsed_for_anova['wm'].astype('category')
+        df_all_parsed_for_anova['dimension'] = df_all_parsed_for_anova['dimension'].astype('category')
         
+        anova_acc = ols('corr ~ C(wm) + C(dimension) + C(angle) + C(wm):C(dimension) + C(wm):C(angle) + C(dimension):C(angle) + C(wm):C(dimension):C(angle)', data=df_all_parsed_for_anova).fit()
+        anova_table = sm.stats.anova_lm(anova_acc, typ=2)
+        st.write(anova_table)
+        
+        st.write("Post-hoc test:")
+        factors = st.multiselect("Select factor for post-hoc test", ['wm', 'dimension', 'angle'], key = 'factors', default= ['wm', 'dimension', 'angle'])
+        # multi compare
+        tmp = df_all_parsed_for_anova[factors]
+        tmp['group_label'] = tmp.apply(lambda x: '_'.join(x), axis=1)
+        df_all_parsed_for_anova['group_label'] = tmp['group_label']
+        mc = MultiComparison(df_all_parsed_for_anova['corr'], df_all_parsed_for_anova['group_label'])
+        mc_results = mc.tukeyhsd()
+        st.write(mc_results)
+      
+    with col2:
+        # RT
+        toc.h3("6.2 Reaction Time")
+        # ANOVA
+        df_all_parsed_rt_for_anova = df_all_parsed_rt.copy()[['rt', 'wm', 'dimension', 'angle']]
+        df_all_parsed_rt_for_anova.dropna(inplace=True)
+        df_all_parsed_rt_for_anova['angle'] = df_all_parsed_rt_for_anova['angle'].astype('str') + 'deg'
+        df_all_parsed_rt_for_anova['angle'] = df_all_parsed_rt_for_anova['angle'].astype('category')
+        df_all_parsed_rt_for_anova['wm'] = df_all_parsed_rt_for_anova['wm'].map({True: 'WM', False: 'Single'})
+        df_all_parsed_rt_for_anova['wm'] = df_all_parsed_rt_for_anova['wm'].astype('category')
+        df_all_parsed_rt_for_anova['dimension'] = df_all_parsed_rt_for_anova['dimension'].astype('category')
+        
+
+        two_way_anova_rt = ols('rt ~ C(wm) + C(dimension) + C(angle) + C(wm):C(dimension) + C(wm):C(angle) + C(dimension):C(angle) + C(wm):C(dimension):C(angle)', data=df_all_parsed_rt_for_anova).fit()
+        anova_table_rt = sm.stats.anova_lm(two_way_anova_rt, typ=2)
+        st.write(anova_table_rt)
+        
+        # post-hoc test
+        st.write("Post-hoc test:")
+        # selectbox for factor
+        factors = st.multiselect("Select factor for post-hoc test", ['wm', 'dimension', 'angle'], key = 'factors_rt', default= ['wm', 'dimension', 'angle'])
+        # multi compare
+        tmp = df_all_parsed_rt_for_anova[factors]
+        tmp['group_label'] = tmp.apply(lambda x: '_'.join(x), axis=1)
+        df_all_parsed_rt_for_anova['group_label'] = tmp['group_label']
+        mc_rt = MultiComparison(df_all_parsed_rt_for_anova['rt'], df_all_parsed_rt_for_anova['group_label'])
+        mc_results_rt = mc_rt.tukeyhsd()
+        st.write(mc_results_rt)
+        
+        
+        
+    
     
         
     toc.toc()
