@@ -13,6 +13,7 @@ from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.multicomp import MultiComparison
+from itertools import combinations
 
 
 import warnings
@@ -791,12 +792,21 @@ if uploaded_file:
     
     toc.h2("6. ANOVA of Accuracy and RT")
     
+    # tick box to delete 3Dd_wm block
+    if st.checkbox("Delete 3Dd_wm block"):
+        df_all_parsed_3dd_cond = df_all_parsed[df_all_parsed['block'] != '3Dd_wm']
+        df_all_parsed_3dd_cond_rt = df_all_parsed_rt[df_all_parsed_rt['block'] != '3Dd_wm']
+    else:
+        df_all_parsed_3dd_cond = df_all_parsed.copy()
+        df_all_parsed_3dd_cond_rt = df_all_parsed_rt.copy()
+    
+    
     col1, col2 = st.columns(2)
     with col1: 
         # Accuracy
         toc.h3("6.1 Accuracy")
         # ANOVA
-        df_all_parsed_for_anova = df_all_parsed.copy()[['corr', 'wm', 'dimension', 'angle']]
+        df_all_parsed_for_anova = df_all_parsed_3dd_cond.copy()[['corr', 'wm', 'dimension', 'angle', 'block']]
         df_all_parsed_for_anova['corr'] = df_all_parsed_for_anova['corr'].astype(float)
         df_all_parsed_for_anova.dropna(inplace=True)
         df_all_parsed_for_anova['angle'] = df_all_parsed_for_anova['angle'].astype('str') + 'deg'
@@ -804,13 +814,22 @@ if uploaded_file:
         df_all_parsed_for_anova['wm'] = df_all_parsed_for_anova['wm'].map({True: 'WM', False: 'Single'})
         df_all_parsed_for_anova['wm'] = df_all_parsed_for_anova['wm'].astype('category')
         df_all_parsed_for_anova['dimension'] = df_all_parsed_for_anova['dimension'].astype('category')
+        df_all_parsed_for_anova['block'] = df_all_parsed_for_anova['block'].astype('category')
         
-        anova_acc = ols('corr ~ C(wm) + C(dimension) + C(angle) + C(wm):C(dimension) + C(wm):C(angle) + C(dimension):C(angle) + C(wm):C(dimension):C(angle)', data=df_all_parsed_for_anova).fit()
+        # anova multi-select
+        anova_factors = st.multiselect("Select variables for ANOVA", ['wm', 'dimension', 'angle', 'block'], key = 'anova_factors', default= ['wm', 'dimension', 'angle'])
+        
+        # Generate all possible combinations of variables
+        combs = sum([list(map(list, combinations(anova_factors, i))) for i in range(1, len(anova_factors) + 1)], [])
+
+        # Generate the formula string
+        formula = 'corr ~ ' + ' + '.join(['C(' + '):C('.join(c) + ')' for c in combs])
+        anova_acc = ols(formula, data=df_all_parsed_for_anova).fit()
         anova_table = sm.stats.anova_lm(anova_acc, typ=2)
         st.write(anova_table)
         
         st.write("Post-hoc test:")
-        factors = st.multiselect("Select factor for post-hoc test", ['wm', 'dimension', 'angle'], key = 'factors', default= ['wm', 'dimension', 'angle'])
+        factors = st.multiselect("Select factors for post-hoc test", anova_factors, key = 'factors', default= anova_factors)
         # multi compare
         tmp = df_all_parsed_for_anova[factors]
         tmp['group_label'] = tmp.apply(lambda x: '_'.join(x), axis=1)
@@ -823,23 +842,30 @@ if uploaded_file:
         # RT
         toc.h3("6.2 Reaction Time")
         # ANOVA
-        df_all_parsed_rt_for_anova = df_all_parsed_rt.copy()[['rt', 'wm', 'dimension', 'angle']]
+        df_all_parsed_rt_for_anova = df_all_parsed_3dd_cond_rt.copy()[['rt', 'wm', 'dimension', 'angle', 'block']]
         df_all_parsed_rt_for_anova.dropna(inplace=True)
         df_all_parsed_rt_for_anova['angle'] = df_all_parsed_rt_for_anova['angle'].astype('str') + 'deg'
         df_all_parsed_rt_for_anova['angle'] = df_all_parsed_rt_for_anova['angle'].astype('category')
         df_all_parsed_rt_for_anova['wm'] = df_all_parsed_rt_for_anova['wm'].map({True: 'WM', False: 'Single'})
         df_all_parsed_rt_for_anova['wm'] = df_all_parsed_rt_for_anova['wm'].astype('category')
         df_all_parsed_rt_for_anova['dimension'] = df_all_parsed_rt_for_anova['dimension'].astype('category')
+        df_all_parsed_rt_for_anova['block'] = df_all_parsed_rt_for_anova['block'].astype('category')
         
-
-        two_way_anova_rt = ols('rt ~ C(wm) + C(dimension) + C(angle) + C(wm):C(dimension) + C(wm):C(angle) + C(dimension):C(angle) + C(wm):C(dimension):C(angle)', data=df_all_parsed_rt_for_anova).fit()
+        # anova multi-select
+        anova_factors_rt = st.multiselect("Select variables for ANOVA", ['wm', 'dimension', 'angle', 'block'], key = 'anova_factors_rt', default= ['wm', 'dimension', 'angle'])
+        
+        # Generate all possible combinations of variables
+        combs_rt = sum([list(map(list, combinations(anova_factors_rt, i))) for i in range(1, len(anova_factors_rt) + 1)], [])
+        formula_rt = 'rt ~ ' + ' + '.join(['C(' + '):C('.join(c) + ')' for c in combs_rt])
+        
+        two_way_anova_rt = ols(formula_rt, data=df_all_parsed_rt_for_anova).fit()
         anova_table_rt = sm.stats.anova_lm(two_way_anova_rt, typ=2)
         st.write(anova_table_rt)
         
         # post-hoc test
         st.write("Post-hoc test:")
         # selectbox for factor
-        factors = st.multiselect("Select factor for post-hoc test", ['wm', 'dimension', 'angle'], key = 'factors_rt', default= ['wm', 'dimension', 'angle'])
+        factors = st.multiselect("Select factor for post-hoc test", anova_factors_rt, key = 'factors_rt', default= anova_factors_rt)
         # multi compare
         tmp = df_all_parsed_rt_for_anova[factors]
         tmp['group_label'] = tmp.apply(lambda x: '_'.join(x), axis=1)
