@@ -173,8 +173,18 @@ if uploaded_file:
     df_all_parsed['participant'] = df_all_parsed['participant'].astype(str)
     success_parsed_participant = sorted(success_parsed_participant)
     st.write(f"Successfully parsed participants: {success_parsed_participant}. ", "Total number of participants: ", len(success_parsed_participant))
-            
+    
+    # delete participants selectbox
+    delete_participants = st.multiselect("Delete participants (None by default)", success_parsed_participant)
+    if delete_participants:
+        df_all_parsed = df_all_parsed[~df_all_parsed['participant'].isin(delete_participants)]
+        st.write(f"Successfully deleted participant(s): {delete_participants}.")
+    
     #  Analysis
+    
+    df_parsed = df_all_parsed.copy()
+    st.write("Parsed data:")
+    st.dataframe(df_parsed)
     
     # groupby participant, block, wm, rot_type, dimension, angle
     df_agg_analysis = df_all_parsed.groupby(['participant', 'block', 'wm', 'rot_type', 'dimension', 'angle']).agg(
@@ -186,8 +196,9 @@ if uploaded_file:
     st.write("Aggregated performance:")
     st.dataframe(df_agg_analysis)
     
-    # checkbox to whether or not delete incorrect responses
-    delete_incorrect = st.checkbox("Delete incorrect responses for RT analysis")
+    # checkbox to whether or not delete incorrect responses on sidebar
+    
+    delete_incorrect = st.sidebar.checkbox("Delete incorrect responses for RT analysis")
     if delete_incorrect:
         df_all_parsed_rt = df_all_parsed[df_all_parsed['corr'] == 1]
     else:
@@ -793,7 +804,7 @@ if uploaded_file:
     toc.h2("6. ANOVA of Accuracy and RT")
     
     # tick box to delete 3Dd_wm block
-    if st.checkbox("Delete 3Dd_wm block"):
+    if st.sidebar.checkbox("Delete 3Dd_wm block for ANOVA"):
         df_all_parsed_3dd_cond = df_all_parsed[df_all_parsed['block'] != '3Dd_wm']
         df_all_parsed_3dd_cond_rt = df_all_parsed_rt[df_all_parsed_rt['block'] != '3Dd_wm']
     else:
@@ -876,7 +887,5 @@ if uploaded_file:
         
         
         
-    
-    
-        
     toc.toc()
+    
