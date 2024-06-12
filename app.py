@@ -127,7 +127,7 @@ def parse_excel(df):
     df_parsed['block'] = df_parsed.apply(get_block, axis=1)
     df_parsed['corr'] = df_parsed.apply(get_corr, axis=1)
     
-    df_parsed = df_parsed.merge(df_strat, on='condition_file')
+    df_parsed = df_parsed.merge(df_strat, on='condition_file', how='left')
     df_parsed['strategy_response'] = df_parsed.apply(get_strategy_response, axis=1)
     
     df_parsed['mini_block'] = df_parsed['condition_file'].apply(lambda x: x.split('/')[1].split('.')[0]) 
