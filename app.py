@@ -14,7 +14,7 @@ from statsmodels.stats.anova import anova_lm
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.multicomp import MultiComparison
 from itertools import combinations
-
+import scipy.stats as stats
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -134,6 +134,12 @@ def parse_excel(df):
     df_parsed.drop(columns=['condition_file'], inplace=True)
     return df_parsed
 
+def parse_vviq(df):
+    vviq_score = df['vviq_response'].sum()
+    participant = df['participant'].unique()[0]
+    tmp_df = pd.DataFrame({'participant': [str(participant)], 'vviq_score': [vviq_score]})
+    return tmp_df
+
 
 # make a new folder 'temp' to store the unzipped files and empty it if it already exists
 import os
@@ -230,7 +236,7 @@ if uploaded_file:
         fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
         df_agg_analysis_plot = df_agg_analysis.sort_values('block')
         sns.barplot(data=df_agg_analysis_plot, x='block', y='accuracy', hue='participant', palette= color_p, ax=ax, errorbar=None)
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Block', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by Block (breakdown by all participants)')
@@ -265,7 +271,7 @@ if uploaded_file:
         sns.lineplot(data=df_agg_analysis_plot, x='wm', y='accuracy', hue='participant',alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.6, y=0.1)
 
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Single vs WM', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by Single vs WM (breakdown by all participants)')
@@ -297,7 +303,7 @@ if uploaded_file:
         # sns.barplot(data=df_agg_analysis_plot, x='dimension', y='accuracy', hue='participant', palette= color_p, ax=ax, errorbar=None, width=0.3)
         sns.lineplot(data=df_agg_analysis_plot, x='dimension', y='accuracy', hue='participant', alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.6, y=0.1)
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('2D vs 3D', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by 2D vs 3D (breakdown by all participants)')
@@ -332,7 +338,7 @@ if uploaded_file:
         ax.set_xticks([0, 60, 120, 180])
         # margin
         ax.margins(x=0.2, y=0.1)
-        plt.legend(bbox_to_anchor=(0.7, 0.9), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Angle', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by Angular Difference (breakdown by all participants)')
@@ -354,7 +360,7 @@ if uploaded_file:
         ax.margins(x=0.2, y=0.1)
         ax.set_xticks([0, 60, 120, 180])
         plt.ylim(0.2, 1.2)
-        plt.legend(bbox_to_anchor=(0.8, 0.9), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Angle', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by Angular Difference (Single)')
@@ -370,7 +376,7 @@ if uploaded_file:
         ax.margins(x=0.2, y=0.1)
         ax.set_xticks([0, 60, 120, 180])
         plt.ylim(0.2, 1.2)
-        plt.legend(bbox_to_anchor=(0.8, 0.9), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Angle', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by Angular Difference (WM)')
@@ -404,7 +410,7 @@ if uploaded_file:
         fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
         df_agg_analysis_plot = df_all_parsed_rt.sort_values(['block', 'participant'])
         sns.barplot(data=df_agg_analysis_plot, x='block', y='rt', hue='participant', palette= color_p, ax=ax, errorbar=None)
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Block', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by Block (breakdown by all participants)')
@@ -440,7 +446,7 @@ if uploaded_file:
         # sns.barplot(data=df_agg_analysis_plot, x='wm', y='rt', hue='participant', palette= color_p, ax=ax, errorbar=None, width=0.3)
         sns.lineplot(data=df_agg_analysis_plot, x='wm', y='rt', hue='participant', alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.6, y=0.1)
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Single vs WM', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by Single vs WM (breakdown by all participants)')
@@ -473,7 +479,7 @@ if uploaded_file:
         # sns.barplot(data=df_agg_analysis_plot, x='dimension', y='rt', hue='participant', palette= color_p, ax=ax, errorbar=None, width=0.3)
         sns.lineplot(data=df_agg_analysis_plot, x='dimension', y='rt', hue='participant', alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.6, y=0.1)
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('2D vs 3D', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by 2D vs 3D (breakdown by all participants)')
@@ -504,7 +510,7 @@ if uploaded_file:
         sns.lineplot(data=df_agg_analysis_plot, x='angle', y='rt', hue='participant', alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.2, y=0.1)
         ax.set_xticks([0, 60, 120, 180])
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Angle', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by Angular Difference (breakdown by all participants)')
@@ -526,10 +532,10 @@ if uploaded_file:
         sns.lineplot(data=df_agg_analysis_plot_single, x='angle', y='rt', hue='participant', alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.2, y=0.1)
         ax.set_xticks([0, 60, 120, 180])
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Angle', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
-        plt.ylim(0.2, 5)
+        plt.ylim(0.2, 8)
         plt.title('RT by Angular Difference (Single)')
         # remove top and right borders
         sns.despine()
@@ -543,8 +549,8 @@ if uploaded_file:
         sns.lineplot(data=df_agg_analysis_plot_wm, x='angle', y='rt', hue='participant', alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.2, y=0.1)
         ax.set_xticks([0, 60, 120, 180])
-        plt.ylim(0.2, 5)
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.ylim(0.2, 8)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Angle', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by Angular Difference (WM)')
@@ -576,12 +582,13 @@ if uploaded_file:
     with col3:
         df_corr_rt_participant = df_all_parsed.groupby(['participant', 'corr'])['rt'].mean().reset_index().sort_values('participant')
         df_corr_rt_participant['corr'] = df_corr_rt_participant['corr'].map({1: 'Correct', 0: 'Incorrect'})
+        df_corr_rt_participant.sort_values('corr', inplace=True)
         # show all participants' RT by correct vs incorrect
         fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
         # sns.barplot(data=df_corr_rt_participant, x='corr', y='rt', hue='participant', palette= color_p, ax=ax, errorbar=None, width=0.3)
         sns.lineplot(data=df_corr_rt_participant, x='corr', y='rt', hue='participant', alpha = 0.9, palette=color_p, ax=ax, err_style=None, marker='o', markersize=10, linewidth=3)
         ax.margins(x=0.6, y=0.1)
-        plt.legend(bbox_to_anchor=(0.8, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Correct vs Incorrect', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by Correct vs Incorrect (breakdown by all participants)')
@@ -613,7 +620,7 @@ if uploaded_file:
         #     # add block label in the bottom
         #     ax.text(block_idx.mean(), df_all_parsed['running_avg_accuracy'].min(), block, ha='center', va='center', fontsize=8, color='black')
             
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
               
         sns.despine()
         st.pyplot(fig)
@@ -636,7 +643,7 @@ if uploaded_file:
         #     # add block label in the bottom
         #     ax.text(block_idx.mean(), df_all_parsed['running_avg_rt'].min(), block, ha='center', va='center', fontsize=8, color='black')
             
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
               
         sns.despine()
         st.pyplot(fig)
@@ -680,7 +687,7 @@ if uploaded_file:
         # plot
         fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
         sns.barplot(data=df_strategy_accuracy_participant, x='strategy_response', y='corr', hue='participant', palette= color_p, ax=ax, errorbar=None)
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Strategy Response', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by Strategy Response (breakdown by all participants)')
@@ -713,7 +720,7 @@ if uploaded_file:
         # plot
         fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
         sns.barplot(data=df_strategy_rt_participant, x='strategy_response', y='rt', hue='participant', palette= color_p, ax=ax, errorbar=None)
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Strategy Response', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by Strategy Response (breakdown by all participants)')
@@ -760,7 +767,7 @@ if uploaded_file:
         # plot
         fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
         sns.barplot(data=df_vivid_accuracy_participant, x='vivid_response', y='corr', hue='participant', palette= color_p, ax=ax, errorbar=None)
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Vivid Response', fontsize=14)
         ax.set_ylabel('Accuracy', fontsize=14)
         plt.title('Accuracy by Vivid Response (breakdown by all participants)')
@@ -792,7 +799,7 @@ if uploaded_file:
         # plot
         fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
         sns.barplot(data=df_vivid_rt_participant, x='vivid_response', y='rt', hue='participant', palette= color_p, ax=ax, errorbar=None)
-        plt.legend(bbox_to_anchor=(0.7, 0.3), loc=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
         ax.set_xlabel('Vivid Response', fontsize=14)
         ax.set_ylabel('RT', fontsize=14)
         plt.title('RT by Vivid Response (breakdown by all participants)')
@@ -884,8 +891,187 @@ if uploaded_file:
         mc_rt = MultiComparison(df_all_parsed_rt_for_anova['rt'], df_all_parsed_rt_for_anova['group_label'])
         mc_results_rt = mc_rt.tukeyhsd()
         st.write(mc_results_rt)
+    
+    # Optinal VVIQ - behavior analysis
+    toc.h2("7. Optional VVIQ - Behavior Analysis")
+    # Upload VVIQ data
+    uploaded_file_vviq = st.file_uploader("Please zip the VVIQ data and upload here", type=["zip"])
+    if uploaded_file_vviq:
+        with zipfile.ZipFile(uploaded_file_vviq, "r") as z:
+            z.extractall("vviq")
         
+        # get the list of unzipped files
+        unzipped_vviq_files = os.listdir("vviq")
         
+        # read all csv files and parse them
+        df_vviq = pd.DataFrame()
+        success_vviq_parsed_participant = []
+        for file in unzipped_vviq_files:
+            if file.endswith('.csv'):
+                try:
+                    df = pd.read_csv(f"vviq/{file}")
+                    df_vviq = pd.concat([df_vviq, parse_vviq(df)], axis=0)
+                    success_vviq_parsed_participant.append(str(df['participant'].unique()[0]))
+                except:
+                    st.write(f"Error parsing {file}")
         
+        df_vviq.sort_values('participant', inplace=True)
+        st.write(f"Successfully parsed the vviq data of participants: {success_vviq_parsed_participant}")
+        st.write("VVIQ scores:")
+        st.dataframe(df_vviq)
+        
+        st.write("Merging VVIQ data with the main data...")
+        # check set difference if there are any participants in the main data but not in the vviq data
+        main_participants = set(df_all_parsed['participant'].unique())
+        vviq_participants = set(df_vviq['participant'].unique())
+        diff = main_participants.difference(vviq_participants)
+        if diff:
+            st.write(f"Participants in the main data but not in the VVIQ data: {diff}")
+        else:
+            st.write("All participants in the main data have VVIQ data.")
+            
+        # merge the vviq data with the main data
+        df_all_parsed = pd.merge(df_all_parsed, df_vviq, on='participant', how='left')
+        
+        # VVIQ vs Performance
+        # Accuracy vs VVIQ
+        toc.h3("7.1 Accuracy vs VVIQ")
+        
+        # scatter plot of vviq and average accuracy, also breakdown by block
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            df_vviq_acc = df_all_parsed.groupby('participant')['corr'].mean().reset_index()
+            df_vviq_acc = pd.merge(df_vviq_acc, df_vviq, on='participant', how='left')
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.regplot(data=df_vviq_acc, x='vviq_score', y='corr', ax=ax, scatter_kws={'s': 15})
+            ax.set_xlabel('VVIQ', fontsize=14)
+            ax.set_ylabel('Accuracy', fontsize=14)
+            plt.title('Accuracy vs VVIQ')
+            # remove top and right borders
+            sns.despine()
+            # plot spearman r in the plot
+            r, p = stats.spearmanr(df_vviq_acc['vviq_score'], df_vviq_acc['corr'])
+            ax.text(0.75, 0.25, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=13, verticalalignment='top')
+            st.pyplot(fig)
+        with col2:
+            # WM
+            df_vviq_acc_wm = df_all_parsed[df_all_parsed['wm'] == True].groupby('participant')['corr'].mean().reset_index()
+            df_vviq_acc_wm = pd.merge(df_vviq_acc_wm, df_vviq, on='participant', how='left')
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.regplot(data=df_vviq_acc_wm, x='vviq_score', y='corr', ax=ax, scatter_kws={'s': 15})
+            ax.set_xlabel('VVIQ', fontsize=14)
+            ax.set_ylabel('Accuracy', fontsize=14)
+            plt.title('Accuracy vs VVIQ (WM)')
+            # remove top and right borders
+            sns.despine()
+            # plot spearman r in the plot
+            r, p = stats.spearmanr(df_vviq_acc_wm['vviq_score'], df_vviq_acc_wm['corr'])
+            ax.text(0.75, 0.25, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=13, verticalalignment='top')
+            st.pyplot(fig)
+        with col3:
+            # Single
+            df_vviq_acc_single = df_all_parsed[df_all_parsed['wm'] == False].groupby('participant')['corr'].mean().reset_index()
+            df_vviq_acc_single = pd.merge(df_vviq_acc_single, df_vviq, on='participant', how='left')
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.regplot(data=df_vviq_acc_single, x='vviq_score', y='corr', ax=ax, scatter_kws={'s':15})
+            ax.set_xlabel('VVIQ', fontsize=14)
+            ax.set_ylabel('Accuracy', fontsize=14)
+            plt.title('Accuracy vs VVIQ (Single)')
+            # remove top and right borders
+            sns.despine()
+            # plot spearman r in the plot
+            r, p = stats.spearmanr(df_vviq_acc_single['vviq_score'], df_vviq_acc_single['corr'])
+            ax.text(0.75, 0.25, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=13, verticalalignment='top')
+            st.pyplot(fig)
+        
+        # Accuracy vs VVIQ by block
+        # facet grid plot in seaborn
+        df_vviq_acc_block = df_all_parsed.groupby(['participant', 'block'])['corr'].mean().reset_index()
+        df_vviq_acc_block = pd.merge(df_vviq_acc_block, df_vviq, on='participant', how='left')
+        
+        g = sns.FacetGrid(df_vviq_acc_block, col='block', col_wrap=5, height=3.5, aspect=1)
+        # set the dpi for better resolution
+        g.fig.set_dpi(300)
+        g.map_dataframe(sns.regplot, x='vviq_score', y='corr', scatter_kws={'s': 15})
+        # add spearman r in the plot
+        for ax in g.axes.flat:
+            block = ax.get_title().split('=')[1].strip()
+            df_block = df_vviq_acc_block[df_vviq_acc_block['block'] == block]
+            r, p = stats.spearmanr(df_block['vviq_score'], df_block['corr'])
+            ax.text(0.7, 0.25, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=12, verticalalignment='top')
+        g.set_axis_labels('VVIQ', 'Accuracy')
+        st.pyplot(g)
+        
+        st.write("* r: Spearman correlation coefficient, p: p-value")
+        # RT vs VVIQ
+        toc.h3("7.2 Reaction Time vs VVIQ")
+        
+        # scatter plot of vviq and average rt, also breakdown by block
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            df_vviq_rt = df_all_parsed_rt.groupby('participant')['rt'].mean().reset_index()
+            df_vviq_rt = pd.merge(df_vviq_rt, df_vviq, on='participant', how='left')
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.regplot(data=df_vviq_rt, x='vviq_score', y='rt', ax=ax, scatter_kws={'s': 15})
+            ax.set_xlabel('VVIQ', fontsize=14)
+            ax.set_ylabel('RT', fontsize=14)
+            plt.title('RT vs VVIQ')
+            # remove top and right borders
+            sns.despine()
+            # plot spearman r in the plot
+            r, p = stats.spearmanr(df_vviq_rt['vviq_score'], df_vviq_rt['rt'])
+            ax.text(0.75, 0.8, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=13, verticalalignment='top')
+            st.pyplot(fig)
+        with col2:
+            # WM
+            df_vviq_rt_wm = df_all_parsed_rt[df_all_parsed_rt['wm'] == True].groupby('participant')['rt'].mean().reset_index()
+            df_vviq_rt_wm = pd.merge(df_vviq_rt_wm, df_vviq, on='participant', how='left')
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.regplot(data=df_vviq_rt_wm, x='vviq_score', y='rt', ax=ax, scatter_kws={'s': 15})
+            ax.set_xlabel('VVIQ', fontsize=14)
+            ax.set_ylabel('RT', fontsize=14)
+            plt.title('RT vs VVIQ (WM)')
+            # remove top and right borders
+            sns.despine()
+            # plot spearman r in the plot
+            r, p = stats.pearsonr(df_vviq_rt_wm['vviq_score'], df_vviq_rt_wm['rt'])
+            ax.text(0.75, 0.8, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=13, verticalalignment='top')
+            st.pyplot(fig)
+        with col3:
+            # Single
+            df_vviq_rt_single = df_all_parsed_rt[df_all_parsed_rt['wm'] == False].groupby('participant')['rt'].mean().reset_index()
+            df_vviq_rt_single = pd.merge(df_vviq_rt_single, df_vviq, on='participant', how='left')
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.regplot(data=df_vviq_rt_single, x='vviq_score', y='rt', ax=ax, scatter_kws={'s': 15})
+            ax.set_xlabel('VVIQ', fontsize=14)
+            ax.set_ylabel('RT', fontsize=14)
+            plt.title('RT vs VVIQ (Single)')
+            # remove top and right borders
+            sns.despine()
+            # plot spearman r in the plot
+            r, p = stats.spearmanr(df_vviq_rt_single['vviq_score'], df_vviq_rt_single['rt'])
+            ax.text(0.75, 0.8, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=13, verticalalignment='top')
+            st.pyplot(fig)
+            
+        # RT vs VVIQ by block
+        # facet grid plot in seaborn
+        df_vviq_rt_block = df_all_parsed_rt.groupby(['participant', 'block'])['rt'].mean().reset_index()
+        df_vviq_rt_block = pd.merge(df_vviq_rt_block, df_vviq, on='participant', how='left')
+        
+        g = sns.FacetGrid(df_vviq_rt_block, col='block', col_wrap=5, height=3.5, aspect=1)
+        # set the dpi for better resolution
+        g.fig.set_dpi(300)
+        g.map_dataframe(sns.regplot, x='vviq_score', y='rt', scatter_kws={'s': 15})
+        # add spearman r in the plot
+        for ax in g.axes.flat:
+            block = ax.get_title().split('=')[1].strip()
+            df_block = df_vviq_rt_block[df_vviq_rt_block['block'] == block]
+            r, p = stats.spearmanr(df_block['vviq_score'], df_block['rt'])
+            ax.text(0.7, 0.8, f"r = {r:.2f},\np = {p:.2f}", transform=ax.transAxes, fontsize=12, verticalalignment='top')
+        g.set_axis_labels('VVIQ', 'RT')
+        st.pyplot(g)
+        st.write("* r: Spearman correlation coefficient, p: p-value")
+            
     toc.toc()
     
