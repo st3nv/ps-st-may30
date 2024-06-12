@@ -148,7 +148,7 @@ if os.path.exists('temp'):
 os.makedirs('temp')
 
 # Streamlit app
-st.set_page_config(title="PS Behavioral Analysis", layout="wide", icon="🧠")
+st.set_page_config(page_title="PS Behavioral Analysis", layout="wide", page_icon="🧠")
 st.title("Problem solving Multi Participant Analysis (May 30 version)")
 
 uploaded_file = st.file_uploader("Upload the zipped file of the data of all participants (max 200MB)", type="zip")
@@ -855,6 +855,31 @@ if uploaded_file:
         mc = MultiComparison(df_all_parsed_for_anova['corr'], df_all_parsed_for_anova['group_label'])
         mc_results = mc.tukeyhsd()
         st.write(mc_results)
+        
+        # 2 way table to see the mean accuracy
+        # selectbox for 2 factors
+        anova_viz_fac1 = st.selectbox("Select factor 1", anova_factors, key = 'anova_viz_fac1', index=0)
+        anova_viz_fac2 = st.selectbox("Select factor 2", anova_factors, key = 'anova_viz_fac2', index=1)
+        if anova_viz_fac1 == anova_viz_fac2:
+            st.write("Please select different factors for 2-way table")
+        else:
+            df_acc_2way = df_all_parsed_for_anova.groupby([anova_viz_fac1, anova_viz_fac2])['corr'].mean().reset_index()
+            df_acc_2way.sort_values([anova_viz_fac1, anova_viz_fac2], inplace=True)
+            df_acc_2way_pivot = df_acc_2way.pivot_table(index=anova_viz_fac1, columns=anova_viz_fac2, values='corr').reset_index()
+            st.write("Mean Accuracy by 2 factors:")
+            st.dataframe(df_acc_2way_pivot)
+            # plot 2 way table as line plot x-axis: factor1, hue: factor2, y: accuracy
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.lineplot(data=df_acc_2way, x=anova_viz_fac1, y='corr', hue=anova_viz_fac2, palette=color_p, ax=ax, marker='o', markersize=10, linewidth=3)
+            ax.set_xlabel(anova_viz_fac1, fontsize=14)
+            ax.set_ylabel('Accuracy', fontsize=14)
+            # margin
+            ax.margins(x=0.6, y=0.1)
+            plt.title('Accuracy by 2 factors')
+            plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
+            sns.despine()
+            st.pyplot(fig)
+            
       
     with col2:
         # RT
@@ -891,6 +916,31 @@ if uploaded_file:
         mc_rt = MultiComparison(df_all_parsed_rt_for_anova['rt'], df_all_parsed_rt_for_anova['group_label'])
         mc_results_rt = mc_rt.tukeyhsd()
         st.write(mc_results_rt)
+        
+        # 2 way table to see the mean RT
+        # selectbox for 2 factors
+        anova_viz_fac1_rt = st.selectbox("Select factor 1", anova_factors_rt, key = 'anova_viz_fac1_rt', index=0)
+        anova_viz_fac2_rt = st.selectbox("Select factor 2", anova_factors_rt, key = 'anova_viz_fac2_rt', index=1)
+        if anova_viz_fac1_rt == anova_viz_fac2_rt:
+            st.write("Please select different factors for 2-way table")
+        else:
+            df_rt_2way = df_all_parsed_rt_for_anova.groupby([anova_viz_fac1_rt, anova_viz_fac2_rt])['rt'].mean().reset_index()
+            df_rt_2way = df_rt_2way.sort_values([anova_viz_fac1_rt, anova_viz_fac2_rt])
+            df_rt_2way_pivot = df_rt_2way.pivot_table(index=anova_viz_fac1_rt, columns=anova_viz_fac2_rt, values='rt').reset_index()
+            st.write("Mean RT by 2 factors:")
+            st.dataframe(df_rt_2way_pivot)
+            # plot 2 way table as line plot x-axis: factor1, hue: factor2, y: RT
+            fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+            sns.lineplot(data=df_rt_2way, x=anova_viz_fac1_rt, y='rt', hue=anova_viz_fac2_rt, palette=color_p, ax=ax, marker='o', markersize=10, linewidth=3)
+            ax.set_xlabel(anova_viz_fac1_rt, fontsize=14)
+            ax.set_ylabel('RT', fontsize=14)
+            # margin
+            ax.margins(x=0.6, y=0.1)
+            plt.title('RT by 2 factors')
+            plt.legend(bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0.)
+            sns.despine()
+            st.pyplot(fig)
+            
     
     # Optinal VVIQ - behavior analysis
     toc.h2("7. Optional VVIQ - Behavior Analysis")
