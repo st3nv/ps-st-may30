@@ -941,9 +941,58 @@ if uploaded_file:
             sns.despine()
             st.pyplot(fig)
             
+    toc.h2("7. TBT Vividness vs Performance")
+    
+    # reported vividness distribution
+    toc.h3("7.0 Vividness Distribution")
+    col1, col2 = st.columns(2)
+    with col1:
+        # number of vividness responses at every level
+        st.write("Count of vividness responses:")
+        st.write(df_all_parsed['vivid_response'].value_counts().reset_index().sort_values('vivid_response').reset_index(drop=True))
+    with col2:
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+        # bar plot of vividness distribution
+        vivid_cnt = df_all_parsed['vivid_response'].value_counts().reset_index().sort_values('vivid_response').reset_index(drop=True)
+        sns.barplot(data=vivid_cnt, x='vivid_response', y='count', palette=color_p, ax=ax)
+        ax.set_xlabel('Vividness', fontsize=14)
+        ax.set_ylabel('Count', fontsize=14)
+        plt.title('Vividness Distribution')
+        # remove top and right borders
+        sns.despine()
+        st.pyplot(fig)
+    
+    col1, col2 = st.columns(2)
+    # vividness vs accuracy
+    with col1:
+        toc.h3("7.1 Accuracy")
+        # correlation between vividness and accuracy
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+        sns.barplot(data=df_all_parsed, x='vivid_response', y='corr', palette=color_p, ax=ax, capsize=0.1)
+        # sns.stripplot(data=df_all_parsed, x='vivid_response', y='corr', ax=ax, palette=color_p, 
+        ax.set_xlabel('Vividness', fontsize=14)
+        ax.set_ylabel('Accuracy', fontsize=14)
+        
+        # remove top and right borders
+        sns.despine()
+        st.pyplot(fig)
+        
+    with col2:
+        # vividness vs rt
+        toc.h3("7.2 Reaction Time")
+        # correlation between vividness and rt
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=200)
+        sns.barplot(data=df_all_parsed_rt, x='vivid_response', y='rt', palette=color_p, ax=ax, capsize=0.1)
+        ax.set_xlabel('Vividness', fontsize=14)
+        ax.set_ylabel('RT', fontsize=14)
+        
+        # remove top and right borders
+        sns.despine()
+        st.pyplot(fig)
+    
     
     # Optinal VVIQ - behavior analysis
-    toc.h2("7. Optional VVIQ - Behavior Analysis")
+    toc.h2("8. Optional VVIQ - Behavior Analysis")
     # Upload VVIQ data
     uploaded_file_vviq = st.file_uploader("Please zip the VVIQ data and upload here", type=["zip"])
     if uploaded_file_vviq:
@@ -985,7 +1034,7 @@ if uploaded_file:
         
         # VVIQ vs Performance
         # Accuracy vs VVIQ
-        toc.h3("7.1 Accuracy vs VVIQ")
+        toc.h3("8.1 Accuracy vs VVIQ")
         
         # scatter plot of vviq and average accuracy, also breakdown by block
         col1, col2, col3 = st.columns(3)
@@ -1054,7 +1103,7 @@ if uploaded_file:
         
         st.write("* r: Spearman correlation coefficient, p: p-value")
         # RT vs VVIQ
-        toc.h3("7.2 Reaction Time vs VVIQ")
+        toc.h3("8.2 Reaction Time vs VVIQ")
         
         # scatter plot of vviq and average rt, also breakdown by block
         col1, col2, col3 = st.columns(3)
