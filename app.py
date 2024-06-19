@@ -181,7 +181,9 @@ if uploaded_file:
     st.write(f"Successfully parsed participants: {success_parsed_participant}. ", "Total number of participants: ", len(success_parsed_participant))
     
     # delete participants selectbox
-    delete_participants = st.multiselect("Delete participants (None by default)", success_parsed_participant)
+    # default is 6, 10, 12, 13 intersected with success_parsed_participant
+    default = list(set(['6', '10', '12', '13']).intersection(set(success_parsed_participant)))
+    delete_participants = st.multiselect("Delete participants (None by default)", success_parsed_participant, default=default)
     if delete_participants:
         df_all_parsed = df_all_parsed[~df_all_parsed['participant'].isin(delete_participants)]
         st.write(f"Successfully deleted participant(s): {delete_participants}.")
